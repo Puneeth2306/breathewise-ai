@@ -25,3 +25,4 @@ export interface FamilyVulnerabilityProfile {
   pregnantMembers: boolean;
   preExistingConditions: string[];
 }
+

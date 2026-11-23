@@ -24,3 +24,4 @@ export interface AssistantContext {
     hasPurifier?: boolean;
   };
 }
+

@@ -68,3 +68,4 @@ export function calculateEquivalencies(totalCo2Kg: number) {
     carKmSaved: Math.round(carKmSaved),
   };
 }
+

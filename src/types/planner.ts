@@ -27,3 +27,4 @@ export interface DailyPlannerResponse {
     cookingExhaustNote: string;
   };
 }
+

@@ -452,3 +452,4 @@ export async function searchCities(query: string): Promise<LocationData[]> {
 
   return matchedPredefined;
 }
+

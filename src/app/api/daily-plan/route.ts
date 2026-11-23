@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isGeminiConfigured } from '@/lib/gemini';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import { DailyPlannerResponse, DailyPlannerScheduleItem } from '@/types/planner';
 
 export const dynamic = 'force-dynamic';
@@ -34,11 +34,9 @@ async function generatePersonalizedPlan(
   const apiKey = process.env.GEMINI_API_KEY;
   
   if (isGeminiConfigured && apiKey) {
-    try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const ai = new GoogleGenAI({ apiKey });
 
-      const prompt = `
+    const prompt = `
 Generate a structured JSON personalized daily schedule for BreatheWise AI.
 User Context:
 - Location: ${city}
@@ -116,17 +114,24 @@ Return ONLY a valid JSON object matching this schema:
 }
 `;
 
-      const result = await model.generateContent(prompt);
-      const text = result.response.text();
-      const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      const parsed = JSON.parse(cleanJson);
-      return parsed;
-    } catch (err) {
-      console.warn('Gemini daily plan generation error, falling back to algorithmic plan:', err);
+    for (const modelName of ['gemini-3.5-flash-lite', 'gemini-3.8-flash']) {
+      try {
+        const result = await ai.models.generateContent({
+          model: modelName,
+          contents: prompt,
+        });
+
+        const text = result.text || '';
+        const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanJson);
+        return parsed;
+      } catch (err) {
+        console.warn(`Gemini daily plan generation error with ${modelName}:`, err);
+      }
     }
   }
 
-  // Algorithmic high-quality plan
+  // Algorithmic high-quality plan fallback
   return getAlgorithmicDailyPlan(profile, currentAqi, city);
 }
 

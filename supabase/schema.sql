@@ -140,3 +140,4 @@ ALTER TABLE public.community_stats ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can view community stats"
   ON public.community_stats FOR SELECT
   USING (true);
+

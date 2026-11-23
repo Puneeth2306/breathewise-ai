@@ -89,3 +89,4 @@ export interface AQICategoryDetails {
   };
   timestamp: string;
 }
+

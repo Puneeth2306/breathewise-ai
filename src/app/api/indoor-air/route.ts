@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isGeminiConfigured } from '@/lib/gemini';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,11 +56,9 @@ async function generateIndoorAirRecommendations(params: any): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (isGeminiConfigured && apiKey) {
-    try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const ai = new GoogleGenAI({ apiKey });
 
-      const prompt = `
+    const prompt = `
 Provide an expert indoor air quality assessment for a ${params.roomType} (${params.roomAreaSqFt} sq ft).
 Environment:
 - City: ${params.city} (Outdoor AQI: ${params.outdoorAqi})
@@ -77,10 +75,16 @@ Provide:
 Keep it concise, practical, and formatted in clean markdown.
 `;
 
-      const result = await model.generateContent(prompt);
-      return result.response.text();
-    } catch (e) {
-      console.warn('Gemini indoor air advice fallback:', e);
+    for (const modelName of ['gemini-3.5-flash-lite', 'gemini-3.8-flash']) {
+      try {
+        const result = await ai.models.generateContent({
+          model: modelName,
+          contents: prompt,
+        });
+        if (result.text) return result.text;
+      } catch (e) {
+        console.warn(`Gemini indoor air advice fallback with ${modelName}:`, e);
+      }
     }
   }
 

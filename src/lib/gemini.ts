@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 const apiKey = process.env.GEMINI_API_KEY || '';
 
@@ -8,7 +8,7 @@ export const isGeminiConfigured = Boolean(
   !apiKey.includes('your_gemini')
 );
 
-const genAI = isGeminiConfigured ? new GoogleGenerativeAI(apiKey) : null;
+const ai = isGeminiConfigured ? new GoogleGenAI({ apiKey }) : null;
 
 export const BREATHEWISE_SYSTEM_INSTRUCTION = `
 You are BreatheWise AI, a world-class GenAI environmental intelligence and sustainable-living assistant.
@@ -25,6 +25,8 @@ CRITICAL OPERATIONAL RULES & GUARDRAILS:
 8. Indoor air quality guidelines: Clarify that indoor plants do NOT replace proper mechanical HEPA filtration for removing PM2.5.
 9. Format all responses with clean GitHub Markdown, bullet points, and highlight badges where helpful.
 `;
+
+const CANDIDATE_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-2.5-pro'];
 
 /**
  * Generate AI Chat Response using Gemini with smart fallback
@@ -49,19 +51,8 @@ export async function generateChatResponse(
   environmentalImpact: string;
   modelUsed: string;
 }> {
-  if (isGeminiConfigured && genAI) {
-    try {
-      const model = genAI.getGenerativeModel({
-        model: 'gemini-1.5-flash',
-        systemInstruction: BREATHEWISE_SYSTEM_INSTRUCTION,
-      });
-
-      const historyFormatted = chatHistory.slice(-8).map(m => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }],
-      }));
-
-      const contextPrompt = `
+  if (isGeminiConfigured && ai) {
+    const contextPrompt = `
 CURRENT ENVIRONMENTAL CONTEXT (LIVE VERIFIED):
 - Location: ${context.city}
 - Current US AQI: ${context.usAqi} (${context.category})
@@ -70,6 +61,9 @@ CURRENT ENVIRONMENTAL CONTEXT (LIVE VERIFIED):
 ${context.no2 ? `- NO2: ${context.no2} µg/m³` : ''}
 ${context.o3 ? `- O3: ${context.o3} µg/m³` : ''}
 ${context.userProfile ? `- User Lifestyle Profile: ${JSON.stringify(context.userProfile)}` : ''}
+
+PREVIOUS CONVERSATION CONTEXT:
+${chatHistory.slice(-4).map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n')}
 
 USER QUESTION:
 "${userMessage}"
@@ -81,26 +75,30 @@ Respond thoughtfully as BreatheWise AI. Provide:
 4. Sustainable living / environmental reflection (how choices today reduce urban emissions).
 `;
 
-      const chat = model.startChat({
-        history: historyFormatted,
-        generationConfig: {
-          maxOutputTokens: 1000,
-          temperature: 0.7,
-        },
-      });
+    for (const modelName of CANDIDATE_MODELS) {
+      try {
+        const response = await ai.models.generateContent({
+          model: modelName,
+          contents: contextPrompt,
+          config: {
+            systemInstruction: BREATHEWISE_SYSTEM_INSTRUCTION,
+            temperature: 0.7,
+          },
+        });
 
-      const result = await chat.sendMessage(contextPrompt);
-      const text = result.response.text();
-
-      return {
-        text,
-        suggestedActions: extractSuggestedActions(text),
-        scientificReasoning: `Based on current ${context.city} PM2.5 levels of ${context.pm25} µg/m³ (AQI ${context.usAqi}).`,
-        environmentalImpact: 'Opting for public transit or carpooling prevents ~170g CO2 per km compared to solo vehicle use.',
-        modelUsed: 'gemini-1.5-flash (Google GenAI)',
-      };
-    } catch (err: any) {
-      console.warn('Gemini API call encountered error, providing verified intelligence fallback:', err.message);
+        const text = response.text || '';
+        if (text) {
+          return {
+            text,
+            suggestedActions: extractSuggestedActions(text),
+            scientificReasoning: `Based on current ${context.city} PM2.5 levels of ${context.pm25} µg/m³ (AQI ${context.usAqi}).`,
+            environmentalImpact: 'Opting for public transit or carpooling prevents ~170g CO2 per km compared to solo vehicle use.',
+            modelUsed: `${modelName} (Google GenAI)`,
+          };
+        }
+      } catch (err: any) {
+        console.warn(`Gemini API call with ${modelName} encountered error:`, err.message || err);
+      }
     }
   }
 
