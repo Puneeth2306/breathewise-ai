@@ -2,6 +2,12 @@
 
 > **Know Your Air. Protect Your Family. Improve Your Environment.**
 
+[![Live Production](https://img.shields.io/badge/Vercel-Live_Deployment-10b981?style=for-the-badge&logo=vercel)](https://breathewise-ai-nu.vercel.app)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-slate?style=for-the-badge&logo=github)](https://github.com/Puneeth2306/breathewise-ai)
+
+**Live URL**: [https://breathewise-ai-nu.vercel.app](https://breathewise-ai-nu.vercel.app)  
+**GitHub Repository**: [https://github.com/Puneeth2306/breathewise-ai](https://github.com/Puneeth2306/breathewise-ai)
+
 BreatheWise AI is a premium, GenAI-powered environmental intelligence and sustainable-living web platform designed to help individuals, families, and urban communities navigate severe winter smog and urban air pollution. 
 
 Demonstrated for **Bengaluru, India** and architected for global cities worldwide.
