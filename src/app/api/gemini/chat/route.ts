@@ -12,14 +12,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    if (!context || typeof context.usAqi !== 'number') {
-      return NextResponse.json(
-        { error: 'Air quality context (usAqi, city, pm25, pm10) is required' },
-        { status: 400 }
-      );
-    }
+    const safeContext = {
+      city: context?.city || 'Bengaluru',
+      usAqi: typeof context?.usAqi === 'number' ? context.usAqi : 75,
+      category: context?.category || 'Moderate',
+      pm25: typeof context?.pm25 === 'number' ? context.pm25 : 25,
+      pm10: typeof context?.pm10 === 'number' ? context.pm10 : 45,
+      no2: context?.no2,
+      o3: context?.o3,
+      userProfile: context?.userProfile,
+    };
 
-    const response = await generateChatResponse(message, context, history || []);
+    const response = await generateChatResponse(message, safeContext, history || []);
     return NextResponse.json(response);
   } catch (error: any) {
     console.error('Error in Gemini chat API:', error);

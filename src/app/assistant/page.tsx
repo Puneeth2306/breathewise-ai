@@ -124,19 +124,22 @@ Feel free to ask me anything about:
         body: JSON.stringify({
           message: query,
           context: {
-            city: location.city,
-            usAqi: aqiData?.current.usAqi || 75,
-            category: aqiData?.current.category || 'Moderate',
-            pm25: aqiData?.current.pollutants.pm25.value || 25,
-            pm10: aqiData?.current.pollutants.pm10.value || 45,
-            no2: aqiData?.current.pollutants.no2.value,
-            o3: aqiData?.current.pollutants.o3.value,
+            city: location?.city || 'Bengaluru',
+            usAqi: aqiData?.current?.usAqi ?? 75,
+            category: aqiData?.current?.category || 'Moderate',
+            pm25: aqiData?.current?.pollutants?.pm25?.value ?? 25,
+            pm10: aqiData?.current?.pollutants?.pm10?.value ?? 45,
+            no2: aqiData?.current?.pollutants?.no2?.value,
+            o3: aqiData?.current?.pollutants?.o3?.value,
           },
           history: newMessages.map(m => ({ role: m.role, content: m.content })),
         }),
       });
 
-      if (!res.ok) throw new Error('AI service error');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.error || `Server responded with ${res.status}`);
+      }
 
       const data = await res.json();
       const assistantMsg: ChatMessage = {
@@ -153,11 +156,11 @@ Feel free to ask me anything about:
       setMessages(finalMessages);
       LocalStorageStore.saveChatHistory(finalMessages);
     } catch (err: any) {
-      console.error(err);
+      console.error('Chat error:', err);
       const errorMsg: ChatMessage = {
         id: 'msg_err_' + Date.now(),
         role: 'assistant',
-        content: `I encountered an unexpected connection issue. Please verify your internet connection or check API configuration.`,
+        content: `I encountered an unexpected connection issue (${err.message || 'Connection failure'}). Please verify your internet connection or check API configuration.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages([...newMessages, errorMsg]);

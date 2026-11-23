@@ -1,14 +1,19 @@
 import { GoogleGenAI } from '@google/genai';
 
-const apiKey = process.env.GEMINI_API_KEY || '';
+export function getGenAIClient(): GoogleGenAI | null {
+  const key = process.env.GEMINI_API_KEY || '';
+  if (key && key.length > 10 && !key.includes('your_gemini')) {
+    return new GoogleGenAI({ apiKey: key });
+  }
+  return null;
+}
 
-export const isGeminiConfigured = Boolean(
-  apiKey && 
-  apiKey.length > 10 && 
-  !apiKey.includes('your_gemini')
-);
+export function checkIsGeminiConfigured(): boolean {
+  const key = process.env.GEMINI_API_KEY || '';
+  return Boolean(key && key.length > 10 && !key.includes('your_gemini'));
+}
 
-const ai = isGeminiConfigured ? new GoogleGenAI({ apiKey }) : null;
+export const isGeminiConfigured = checkIsGeminiConfigured();
 
 export const BREATHEWISE_SYSTEM_INSTRUCTION = `
 You are BreatheWise AI, a world-class GenAI environmental intelligence and sustainable-living assistant.
@@ -51,7 +56,8 @@ export async function generateChatResponse(
   environmentalImpact: string;
   modelUsed: string;
 }> {
-  if (isGeminiConfigured && ai) {
+  const ai = getGenAIClient();
+  if (ai) {
     const contextPrompt = `
 CURRENT ENVIRONMENTAL CONTEXT (LIVE VERIFIED):
 - Location: ${context.city}

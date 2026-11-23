@@ -185,7 +185,7 @@ export default function LandingPage() {
                       <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                         <div className="text-[10px] text-slate-500 font-medium">PM2.5</div>
                         <div className="text-sm font-bold text-slate-900">
-                          {aqiData.current.pollutants.pm25.value} <span className="text-[9px] font-normal text-slate-500">µg/m³</span>
+                          {aqiData.current?.pollutants?.pm25?.value ?? '--'} <span className="text-[9px] font-normal text-slate-500">µg/m³</span>
                         </div>
                         <div className="text-[9px] text-emerald-700 font-medium mt-0.5">
                           WHO 24h: 15
@@ -195,7 +195,7 @@ export default function LandingPage() {
                       <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                         <div className="text-[10px] text-slate-500 font-medium">PM10</div>
                         <div className="text-sm font-bold text-slate-900">
-                          {aqiData.current.pollutants.pm10.value} <span className="text-[9px] font-normal text-slate-500">µg/m³</span>
+                          {aqiData.current?.pollutants?.pm10?.value ?? '--'} <span className="text-[9px] font-normal text-slate-500">µg/m³</span>
                         </div>
                         <div className="text-[9px] text-emerald-700 font-medium mt-0.5">
                           WHO 24h: 45
@@ -205,7 +205,7 @@ export default function LandingPage() {
                       <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                         <div className="text-[10px] text-slate-500 font-medium">NO2</div>
                         <div className="text-sm font-bold text-slate-900">
-                          {aqiData.current.pollutants.no2.value} <span className="text-[9px] font-normal text-slate-500">µg/m³</span>
+                          {aqiData.current?.pollutants?.no2?.value ?? '--'} <span className="text-[9px] font-normal text-slate-500">µg/m³</span>
                         </div>
                         <div className="text-[9px] text-slate-500 font-medium mt-0.5">
                           Traffic Exhaust
